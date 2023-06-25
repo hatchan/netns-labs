@@ -4,16 +4,6 @@ IFS=$'\n\t'
 
 set -o xtrace
 
-# Variables:
-NAMESPACE="netns1"
-VETH_NETWORK="10.10.1.0"
-
-VETH_HOST="veth0"
-VETH_HOST_IP="10.10.1.1"
-
-VETH_NS="veth1"
-VETH_NS_IP="10.10.1.2"
-
 # create net namepsace
 sudo ip netns add "$NAMESPACE"
 sudo ip -n "$NAMESPACE" link set lo up
