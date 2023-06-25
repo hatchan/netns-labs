@@ -8,20 +8,10 @@ set -o xtrace
 sudo ip netns add "$NAMESPACE"
 sudo ip -n "$NAMESPACE" link set lo up
 
-# create veth pair
-sudo ip link add "$VETH_HOST" type veth peer name "$VETH_NS"
-sudo ip link set "$VETH_NS" netns "$NAMESPACE"
+sudo ip link add wg0 type wireguard
+sudo ip link set wg0 netns $NAMESPACE
 
-sudo ip addr add "$VETH_HOST_IP/24" dev "$VETH_HOST"
-sudo ip -n "$NAMESPACE" addr add "$VETH_NS_IP/24" dev "$VETH_NS"
-
-sudo ip link set "$VETH_HOST" up
-sudo ip -n "$NAMESPACE" link set "$VETH_NS" up
-
-sudo ip route add "$VETH_NS_IP" dev "$VETH_HOST"
-sudo ip -n "$NAMESPACE" route add default via "$VETH_HOST_IP" dev "$VETH_NS" src "$VETH_NS_IP"
-
-# enable NAT
-sudo iptables -t nat -A POSTROUTING -s "$VETH_NETWORK/24" -o wlan0 -j MASQUERADE
-sudo iptables -A FORWARD -i wlan0 -o "$VETH_HOST" -j ACCEPT
-sudo iptables -A FORWARD -o wlan0 -i "$VETH_HOST" -j ACCEPT
+sudo ip -n $NAMESPACE addr add 10.2.0.2/32 dev wg0
+sudo ip netns exec $NAMESPACE wg setconf wg0 /home/hatchan/wireguard/proton-vpn-wg0.conf
+sudo ip -n $NAMESPACE link set wg0 up
+sudo ip -n $NAMESPACE route add default dev wg0
